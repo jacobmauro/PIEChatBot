@@ -1,4 +1,4 @@
-import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
@@ -13,7 +13,7 @@ public class PIEBot {
     public static void main(String[] args) throws InterruptedException {
     	
         // declaration and instantiation of objects/variables
-    	System.setProperty("webdriver.chrome.driver", "C:\\Users\\jake_\\eclipse-workspace\\PIEChatBot\\lib\\chromedriver.exe");
+    	System.setProperty("webdriver.chrome.driver", "C:\\Users\\jamauro\\git\\PIEChatBot\\lib\\chromedriver.exe");
 		WebDriver driver = new ChromeDriver();
 		driver.manage().window().setSize(new Dimension(2000, 2000));
         String baseUrl = "https://tcciub.pie.iu.edu/Authentication?previousUrl=%2F";	
@@ -34,13 +34,16 @@ public class PIEBot {
         action.moveToElement(signInButton).perform();
         action.moveToElement(signInButton).click().perform();
      
-        //get user input for username and password
-	    Scanner sc = new Scanner(System.in);
-	    System.out.print("Username: ");
-	    String username = sc.nextLine();
-	    System.out.println("Password: ");
-	    String password = sc.nextLine();
-	    sc.close();
+        Connection login = new Connection();
+        
+        while(login.getCredentialsGiven() == false) {
+        	//do nothing
+        	System.out.println("here");
+        }
+        
+        String username = login.getUsername();
+        char[] password = login.getPassword();
+        
         
 	    //enter username
         WebElement usernameEnter = driver.findElement(By.xpath("//*[@id=\"username\"]"));
@@ -48,7 +51,10 @@ public class PIEBot {
      
         //enter password
         WebElement passwordEnter = driver.findElement(By.xpath("//*[@id=\"password\"]"));
-        passwordEnter.sendKeys(password);
+        String passwordAsString = String.valueOf(password);
+        password = null;
+        passwordEnter.sendKeys(passwordAsString);
+        passwordAsString = null;
      
         //"Log in" button
         WebElement loginButton= driver.findElement(By.xpath("//*[@id=\"login-button\"]"));
@@ -58,6 +64,12 @@ public class PIEBot {
         action2.moveToElement(loginButton).perform();
         action2.moveToElement(loginButton).click().perform();
      
+        TimeUnit.SECONDS.sleep(10);
+        
+        //gets top message but might not work for images? check that, might be ...div[1]/img
+        WebElement chatMessage = driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/div[1]/div[2]/div[2]/chat-messages-list/div/li[1]/div[1]"));
+        System.out.println(chatMessage.getText());
+        
         //close Chrome
         //driver.close();
        
