@@ -127,6 +127,7 @@ public class PIEBot {
 
         	//if the PIEBot has been called
         	if(messageWords[0].equals("!piebot")) {
+        		System.out.println();
         		if(messageWords.length == 1) {
         			//handle when !piebot is called with no command
         		}else if(commands.contains(messageWords[1])){
