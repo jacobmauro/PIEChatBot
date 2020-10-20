@@ -88,12 +88,13 @@ public class PIEBot {
 	//-----------------------------------------------------------------------------------------------------------------
 	//Send a response based on the given command
 	public void sendResponse(String command) {
-		
+		System.out.println("enters sendResponse");
 		WebElement chatBox = driver.findElement(By.xpath("//*[@id=\"chatMessageText\"]"));
 		WebElement sendButton = driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/div[1]/div[2]/div[2]/form/button"));
 		Actions sendResponse = new Actions(driver);
 		
 		if(command.equals("hello")) {
+			System.out.println("detects correct command");
 			chatBox.sendKeys("Hello! :)");
 			sendResponse.moveToElement(sendButton).perform();
 			sendResponse.moveToElement(sendButton).click().perform();
@@ -127,10 +128,11 @@ public class PIEBot {
 
         	//if the PIEBot has been called
         	if(messageWords[0].equals("!piebot")) {
-        		System.out.println();
+        		System.out.println("saw piebot");
         		if(messageWords.length == 1) {
         			//handle when !piebot is called with no command
         		}else if(commands.contains(messageWords[1])){
+        			System.out.println("read correct length");
         			sendResponse(messageWords[1].toLowerCase());
         		}
         	}
