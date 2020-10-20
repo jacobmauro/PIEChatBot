@@ -52,7 +52,7 @@ public class PIEBot {
         Connection login = new Connection();
         while(login.getCredentialsGiven() == false) {
         	//do nothing
-        	System.out.println("test");
+        	System.out.println("waiting for credentials");
         }
         
         String username = login.getUsername();
