@@ -8,7 +8,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.interactions.Actions;
 
 public class PIEBot {
-
+	
 	//this is a test
     public static void main(String[] args) throws InterruptedException {
     	
@@ -66,9 +66,40 @@ public class PIEBot {
      
         TimeUnit.SECONDS.sleep(10);
         
+        WebElement newestMessage;
+        String[] messageWords;
+        while(true) {
+        	TimeUnit.SECONDS.sleep(2);
+        	
+        	newestMessage = driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/div[1]/div[2]/div[2]/chat-messages-list/div/li[1]/div[1]"));
+        	String messageContents = newestMessage.getText();
+        	messageContents = messageContents.trim();
+        	messageWords = messageContents.split(" ");
+
+        	if(messageWords.length > 1) {
+        	
+	        	System.out.println("first: " + messageWords[0]);
+	        	System.out.println("second: " + messageWords[1]);
+	        	
+	        	if(messageWords[0].equals("!piebot")) {
+	        		if(messageWords[1].equals("hello")) {
+	//        			sendMessage("Hello! :)"); MAKE A SEND MESSAGE METHOD AND REWORK THE DESIGN***
+	        			WebElement message = driver.findElement(By.xpath("//*[@id=\"chatMessageText\"]"));
+	        			message.sendKeys("Hello! :)");
+	        			
+	        			WebElement sendButton = driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/div[1]/div[2]/div[2]/form/button"));
+	        			Actions action3 = new Actions(driver);
+	        			action3.moveToElement(sendButton).perform();
+	        			action3.moveToElement(sendButton).click().perform();
+	        		}
+	        	}
+        	}
+        	
+        }
+        
         //gets top message but might not work for images? check that, might be ...div[1]/img
-        WebElement chatMessage = driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/div[1]/div[2]/div[2]/chat-messages-list/div/li[1]/div[1]"));
-        System.out.println(chatMessage.getText());
+//        WebElement chatMessage = driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/div[1]/div[2]/div[2]/chat-messages-list/div/li[1]/div[1]"));
+//        System.out.println(chatMessage.getText());
         
         //close Chrome
         //driver.close();
