@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.By;
@@ -9,101 +10,157 @@ import org.openqa.selenium.interactions.Actions;
 
 public class PIEBot {
 	
-	//this is a test
-    public static void main(String[] args) throws InterruptedException {
-    	
-        // declaration and instantiation of objects/variables
-    	System.setProperty("webdriver.chrome.driver", "C:\\Users\\jamauro\\git\\PIEChatBot\\lib\\chromedriver.exe");
-		WebDriver driver = new ChromeDriver();
+	private WebDriver driver;
+	private String baseUrl;
+	private ArrayList<String> commands;
+	
+	//-----------------------------------------------------------------------------------------------------------------
+	//create a PIEBot, set up the driver, and navigate to the PIE login webpage
+	public PIEBot() {
+		System.setProperty("webdriver.chrome.driver", "C:\\Users\\jamauro\\git\\PIEChatBot\\lib\\chromedriver.exe");
+		driver = new ChromeDriver();
 		driver.manage().window().setSize(new Dimension(2000, 2000));
-        String baseUrl = "https://tcciub.pie.iu.edu/Authentication?previousUrl=%2F";	
-        
-        // launch Chrome and direct it to the Base URL
-        driver.get(baseUrl);
+        baseUrl = "https://tcciub.pie.iu.edu/Authentication?previousUrl=%2F";
+        commands = new ArrayList<String>();
+	}
+	
+	//-----------------------------------------------------------------------------------------------------------------
+	//run the PIEBot
+	public void run() {
+		loadCommands();
+		driver.get(baseUrl);
+		signIn();
+	}
+	
+	//-----------------------------------------------------------------------------------------------------------------
+	//load list of commands
+	public void loadCommands() {
+		commands.add("hello");
+	}
+	
+	//-----------------------------------------------------------------------------------------------------------------
+	//get username and password from user to authenticate and navigate to PIE's home page
+	public void signIn() {
 
-        // get the value of the title
-        String title = driver.getTitle();
-        System.out.println(title);
-        
-        
-        //"Sign In Using IU Login" button
-        WebElement signInButton= driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/p/button[1]"));
-     
         //Navigate to the sign in button and click it
+		WebElement signInButton= driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/p/button[1]"));
         Actions action = new Actions(driver);
         action.moveToElement(signInButton).perform();
         action.moveToElement(signInButton).click().perform();
      
+        //Create a new connection and wait until credentials are given
         Connection login = new Connection();
-        
         while(login.getCredentialsGiven() == false) {
         	//do nothing
-        	System.out.println("here");
+        	System.out.println("test");
         }
         
         String username = login.getUsername();
         char[] password = login.getPassword();
+        System.out.println(username);
         
-        
-	    //enter username
+	    //Enter username
         WebElement usernameEnter = driver.findElement(By.xpath("//*[@id=\"username\"]"));
         usernameEnter.sendKeys(username);
      
-        //enter password
+        //Enter and clear password
         WebElement passwordEnter = driver.findElement(By.xpath("//*[@id=\"password\"]"));
         String passwordAsString = String.valueOf(password);
         password = null;
         passwordEnter.sendKeys(passwordAsString);
         passwordAsString = null;
      
-        //"Log in" button
-        WebElement loginButton= driver.findElement(By.xpath("//*[@id=\"login-button\"]"));
-       
         //Navigate to the log in button and click it
+        WebElement loginButton= driver.findElement(By.xpath("//*[@id=\"login-button\"]"));
         Actions action2 = new Actions(driver);
         action2.moveToElement(loginButton).perform();
         action2.moveToElement(loginButton).click().perform();
      
-        TimeUnit.SECONDS.sleep(10);
-        
-        WebElement newestMessage;
+        //Safety wait if page takes a little bit to log in
+        try {
+			TimeUnit.SECONDS.sleep(10);
+		} catch (InterruptedException e) {
+			System.out.println("ERROR: Sleep");
+			e.printStackTrace();
+		}
+	}
+	
+	//-----------------------------------------------------------------------------------------------------------------
+	//Send a response based on the given command
+	public void sendResponse(String command) {
+		
+		WebElement chatBox = driver.findElement(By.xpath("//*[@id=\"chatMessageText\"]"));
+		WebElement sendButton = driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/div[1]/div[2]/div[2]/form/button"));
+		Actions sendResponse = new Actions(driver);
+		
+		if(command.equals("hello")) {
+			chatBox.sendKeys("Hello! :)");
+			sendResponse.moveToElement(sendButton).perform();
+			sendResponse.moveToElement(sendButton).click().perform();
+		}
+	}
+	
+	//-----------------------------------------------------------------------------------------------------------------
+	//Monitor the chat and respond to any messages beginning with !piebot
+	public void monitorChat() {
+		
+		WebElement newestMessage;
         String[] messageWords;
+        
+        //run indefinitely
         while(true) {
-        	TimeUnit.SECONDS.sleep(2);
         	
+        	//wait 2 seconds between each check of the chat
+        	try {
+				TimeUnit.SECONDS.sleep(2);
+			} catch (InterruptedException e) {
+				System.out.println("ERROR: sleep");
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        	
+        	//get the most recent chat message
         	newestMessage = driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/div[1]/div[2]/div[2]/chat-messages-list/div/li[1]/div[1]"));
         	String messageContents = newestMessage.getText();
         	messageContents = messageContents.trim();
         	messageWords = messageContents.split(" ");
 
-        	if(messageWords.length > 1) {
-        	
-	        	System.out.println("first: " + messageWords[0]);
-	        	System.out.println("second: " + messageWords[1]);
-	        	
-	        	if(messageWords[0].equals("!piebot")) {
-	        		if(messageWords[1].equals("hello")) {
-	//        			sendMessage("Hello! :)"); MAKE A SEND MESSAGE METHOD AND REWORK THE DESIGN***
-	        			WebElement message = driver.findElement(By.xpath("//*[@id=\"chatMessageText\"]"));
-	        			message.sendKeys("Hello! :)");
-	        			
-	        			WebElement sendButton = driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/div[1]/div[2]/div[2]/form/button"));
-	        			Actions action3 = new Actions(driver);
-	        			action3.moveToElement(sendButton).perform();
-	        			action3.moveToElement(sendButton).click().perform();
-	        		}
-	        	}
+        	//if the PIEBot has been called
+        	if(messageWords[0].equals("!piebot")) {
+        		if(messageWords.length == 1) {
+        			//handle when !piebot is called with no command
+        		}else if(commands.contains(messageWords[1])){
+        			sendResponse(messageWords[1].toLowerCase());
+        		}
         	}
         	
+//        	if(messageWords.length > 1) {
+//        	
+//	        	System.out.println("first: " + messageWords[0]);
+//	        	System.out.println("second: " + messageWords[1]);
+//	        	
+//	        	if(messageWords[0].equals("!piebot")) {
+//	        		if(messageWords[1].equals("hello")) {
+//	//        			sendMessage("Hello! :)"); MAKE A SEND MESSAGE METHOD AND REWORK THE DESIGN***
+//	        			WebElement message = driver.findElement(By.xpath("//*[@id=\"chatMessageText\"]"));
+//	        			message.sendKeys("Hello! :)");
+//	        			
+//	        			WebElement sendButton = driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/div[1]/div[2]/div[2]/form/button"));
+//	        			Actions action3 = new Actions(driver);
+//	        			action3.moveToElement(sendButton).perform();
+//	        			action3.moveToElement(sendButton).click().perform();
+//	        		}
+//	        	}
+//        	}
+        	
         }
-        
-        //gets top message but might not work for images? check that, might be ...div[1]/img
-//        WebElement chatMessage = driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/div[1]/div[2]/div[2]/chat-messages-list/div/li[1]/div[1]"));
-//        System.out.println(chatMessage.getText());
-        
-        //close Chrome
-        //driver.close();
-       
+	
+	}
+	
+	//run PIEBot
+    public static void main(String[] args) throws InterruptedException {
+    	PIEBot piebot = new PIEBot();
+    	piebot.run();
     }
 
 }
