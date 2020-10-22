@@ -50,8 +50,7 @@ public class Connection {
 																username = usernameField.getText();
 																password = passwordField.getPassword();
 																credentialsGiven = true;
-//																frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
-																System.out.println("clicked");
+																frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
 		                                                    }
 		});
 		

@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.By;
@@ -13,6 +14,7 @@ public class PIEBot {
 	private WebDriver driver;
 	private String baseUrl;
 	private ArrayList<String> commands;
+	private ChatIcons chatIcons;
 	
 	//-----------------------------------------------------------------------------------------------------------------
 	//create a PIEBot, set up the driver, and navigate to the PIE login webpage
@@ -22,6 +24,7 @@ public class PIEBot {
 		driver.manage().window().setSize(new Dimension(2000, 2000));
         baseUrl = "https://tcciub.pie.iu.edu/Authentication?previousUrl=%2F";
         commands = new ArrayList<String>();
+        chatIcons = new ChatIcons();
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------------
@@ -36,6 +39,7 @@ public class PIEBot {
 	//load list of commands
 	public void loadCommands() {
 		commands.add("hello");
+		commands.add("icon");
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------------
@@ -83,22 +87,44 @@ public class PIEBot {
 			System.out.println("ERROR: Sleep");
 			e.printStackTrace();
 		}
+        
+        //begin monitoring the chat after signing in
+        monitorChat();
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------------
 	//Send a response based on the given command
+	
+	//TODO Command Backlog
+	/*
+	 * Current commands:
+	 * !icon - add the rest of the chat icons
+	 * 
+	 * New commands:
+	 * !compliment - sends a random compliment to a random person (or a separate compliment to all people in chat at the time)
+	 * 
+	 * Automation ideas:
+	 * automatically pull quiz/training questions and ask certain people in chat (tag them) and record their response times
+	 * 
+	 * */
+	
 	public void sendResponse(String command) {
 		System.out.println("enters sendResponse");
 		WebElement chatBox = driver.findElement(By.xpath("//*[@id=\"chatMessageText\"]"));
 		WebElement sendButton = driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/div[1]/div[2]/div[2]/form/button"));
 		Actions sendResponse = new Actions(driver);
-		
+		System.out.println("the command was: " + command);
 		if(command.equals("hello")) {
-			System.out.println("detects correct command");
+			System.out.println("Hello command was detected.");
 			chatBox.sendKeys("Hello! :)");
-			sendResponse.moveToElement(sendButton).perform();
-			sendResponse.moveToElement(sendButton).click().perform();
+		}else if(command.equals("icon")) {
+			System.out.println("Icon command was detected.");
+			String randomChatIcon = chatIcons.getRandomChatIcon();
+			chatBox.sendKeys(randomChatIcon);
 		}
+		
+		sendResponse.moveToElement(sendButton).perform();
+		sendResponse.moveToElement(sendButton).click().perform();
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------------
@@ -110,7 +136,7 @@ public class PIEBot {
         
         //run indefinitely
         while(true) {
-        	
+        	System.out.println("monitoring");
         	//wait 2 seconds between each check of the chat
         	try {
 				TimeUnit.SECONDS.sleep(2);
@@ -126,38 +152,20 @@ public class PIEBot {
         	messageContents = messageContents.trim();
         	messageWords = messageContents.split(" ");
 
+        	System.out.println("Message words: " + Arrays.toString(messageWords));
+        	
         	//if the PIEBot has been called
         	if(messageWords[0].equals("!piebot")) {
         		System.out.println("saw piebot");
         		if(messageWords.length == 1) {
+        			System.out.println("in length of 1");
         			//handle when !piebot is called with no command
         		}else if(commands.contains(messageWords[1])){
-        			System.out.println("read correct length");
+        			System.out.println("gets to right before calling sendResponse()");
         			sendResponse(messageWords[1].toLowerCase());
         		}
         	}
-        	
-//        	if(messageWords.length > 1) {
-//        	
-//	        	System.out.println("first: " + messageWords[0]);
-//	        	System.out.println("second: " + messageWords[1]);
-//	        	
-//	        	if(messageWords[0].equals("!piebot")) {
-//	        		if(messageWords[1].equals("hello")) {
-//	//        			sendMessage("Hello! :)"); MAKE A SEND MESSAGE METHOD AND REWORK THE DESIGN***
-//	        			WebElement message = driver.findElement(By.xpath("//*[@id=\"chatMessageText\"]"));
-//	        			message.sendKeys("Hello! :)");
-//	        			
-//	        			WebElement sendButton = driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/div[1]/div[2]/div[2]/form/button"));
-//	        			Actions action3 = new Actions(driver);
-//	        			action3.moveToElement(sendButton).perform();
-//	        			action3.moveToElement(sendButton).click().perform();
-//	        		}
-//	        	}
-//        	}
-        	
         }
-	
 	}
 	
 	//run PIEBot
