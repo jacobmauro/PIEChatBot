@@ -19,7 +19,7 @@ public class PIEBot {
 	//-----------------------------------------------------------------------------------------------------------------
 	//create a PIEBot, set up the driver, and navigate to the PIE login webpage
 	public PIEBot() {
-		System.setProperty("webdriver.chrome.driver", "C:\\Users\\jamauro\\git\\PIEChatBot\\lib\\chromedriver.exe");
+		System.setProperty("webdriver.chrome.driver", "C:\\Users\\jake_\\git\\PIEChatBot\\lib\\chromedriver.exe");
 		driver = new ChromeDriver();
 		driver.manage().window().setSize(new Dimension(2000, 2000));
         baseUrl = "https://tcciub.pie.iu.edu/Authentication?previousUrl=%2F";
@@ -38,8 +38,12 @@ public class PIEBot {
 	//-----------------------------------------------------------------------------------------------------------------
 	//load list of commands
 	public void loadCommands() {
+		commands.add("no command given");
 		commands.add("hello");
 		commands.add("icon");
+		commands.add("commands");
+		commands.add("help");
+		commands.add("answer");
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------------
@@ -95,12 +99,20 @@ public class PIEBot {
 	//-----------------------------------------------------------------------------------------------------------------
 	//Send a response based on the given command
 	
+	/* Credit for ideas:
+	 * 
+	 * !icon - Amanda Gucwa
+	 * !compliment - Wesley Clifford
+	 * 
+	 * automated quizzing - Jackson Hawk
+	 * */
+	
 	//TODO Command Backlog
 	/*
-	 * Current commands:
+	 * Current command updates:
 	 * !icon - add the rest of the chat icons
 	 * 
-	 * New commands:
+	 * New command ideas:
 	 * !compliment - sends a random compliment to a random person (or a separate compliment to all people in chat at the time)
 	 * 
 	 * Automation ideas:
@@ -108,23 +120,51 @@ public class PIEBot {
 	 * 
 	 * */
 	
+	//if there is a command and no argument given
 	public void sendResponse(String command) {
-		System.out.println("enters sendResponse");
+
 		WebElement chatBox = driver.findElement(By.xpath("//*[@id=\"chatMessageText\"]"));
 		WebElement sendButton = driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/div[1]/div[2]/div[2]/form/button"));
 		Actions sendResponse = new Actions(driver);
-		System.out.println("the command was: " + command);
-		if(command.equals("hello")) {
-			System.out.println("Hello command was detected.");
+		
+		//"!piebot" - handle when no command is given with a !piebot call
+		if(command.equals("no command given")) {
+			String errorMsg = "PIEBot requires an argument after the !piebot call. Type \"!piebot commands\" "
+				           	+ "to see a list of commands, or type \"!piebot help\" for help using PIEBot.";
+			chatBox.sendKeys(errorMsg);
+			
+		//"!piebot hello" - tell the user hello! :)
+		}else if(command.equals("hello")) {
 			chatBox.sendKeys("Hello! :)");
+			
+		//"!piebot icon" - send a random chat icon
 		}else if(command.equals("icon")) {
-			System.out.println("Icon command was detected.");
 			String randomChatIcon = chatIcons.getRandomChatIcon();
 			chatBox.sendKeys(randomChatIcon);
+			
+		//"!piebot commands" - enumerate all current PIEBot commands
+		}else if(command.equals("commands")) {
+			String stringOfCommands = getStringOfCommands();
+			chatBox.sendKeys("The available PIEBot commands are: " + stringOfCommands);
+			
+		//"!piebot help" - give an explanation on how PIEBot works
+		}else if(command.equals("help")) {
+			String help = "PIEBot is a PIE chat bot currently being worked on by Jacob Mauro. The bot is called in format \"!piebot <command>.\" "
+						+ "To see all available commands, type \"!piebot commands.\" If you are interested in assisting in the development of "
+						+ "PIEBot, contact Jacob at jamauro@iu.edu!";
+			chatBox.sendKeys(help);
 		}
 		
 		sendResponse.moveToElement(sendButton).perform();
 		sendResponse.moveToElement(sendButton).click().perform();
+	}
+	
+	//if there is a command and an argument given
+	public void sendResponse(String command, String argument) {
+		
+		if(command.equals("answer")) {
+			//continue here for implementing automatic testing!!!
+		}
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------------
@@ -155,19 +195,42 @@ public class PIEBot {
         	System.out.println("Message words: " + Arrays.toString(messageWords));
         	
         	//if the PIEBot has been called
-        	if(messageWords[0].equals("!piebot")) {
-        		System.out.println("saw piebot");
+        	if(messageWords[0].toLowerCase().equals("!piebot")) {
+ 
+        		//if there is no command given
         		if(messageWords.length == 1) {
-        			System.out.println("in length of 1");
-        			//handle when !piebot is called with no command
-        		}else if(commands.contains(messageWords[1])){
-        			System.out.println("gets to right before calling sendResponse()");
+        			sendResponse("no command given");
+        			
+        		//if there is a command given with no argument
+        		}else if(messageWords.length == 2 && commands.contains(messageWords[1])){
         			sendResponse(messageWords[1].toLowerCase());
+        		
+        		//if there is a command given with an argument
+        		}else if(messageWords.length == 3 && commands.contains(messageWords[2])) {
+        			sendResponse(messageWords[1].toLowerCase(), messageWords[2].toLowerCase());
         		}
         	}
         }
 	}
 	
+	//-----------------------------------------------------------------------------------------------------------------
+	//returns a string with all available commands
+	public String getStringOfCommands() {
+		
+		String stringOfCommands = "";
+		for(int i = 0; i < commands.size(); i++) {
+			
+			//don't add behind-the-scenes commands (add them to the if statement as they are created, rework this if there become too many)
+			if(!commands.get(i).equals("no command given")) {
+				stringOfCommands += commands.get(i) + ", ";
+			}
+		}
+		
+		//return string of commands without last comma and space
+		return stringOfCommands.substring(0, stringOfCommands.length()-2);
+	}
+	
+	//-----------------------------------------------------------------------------------------------------------------
 	//run PIEBot
     public static void main(String[] args) throws InterruptedException {
     	PIEBot piebot = new PIEBot();
