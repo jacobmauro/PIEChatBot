@@ -15,16 +15,18 @@ public class PIEBot {
 	private String baseUrl;
 	private ArrayList<String> commands;
 	private ChatIcons chatIcons;
+	private QuizBot quizBot;
 	
 	//-----------------------------------------------------------------------------------------------------------------
 	//create a PIEBot, set up the driver, and navigate to the PIE login webpage
 	public PIEBot() {
-		System.setProperty("webdriver.chrome.driver", "C:\\Users\\jake_\\git\\PIEChatBot\\lib\\chromedriver.exe");
+		System.setProperty("webdriver.chrome.driver", "C:\\Users\\jamauro\\git\\PIEChatBot\\lib\\chromedriver.exe");
 		driver = new ChromeDriver();
 		driver.manage().window().setSize(new Dimension(2000, 2000));
         baseUrl = "https://tcciub.pie.iu.edu/Authentication?previousUrl=%2F";
         commands = new ArrayList<String>();
         chatIcons = new ChatIcons();
+        quizBot = new QuizBot();
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------------
@@ -44,6 +46,7 @@ public class PIEBot {
 		commands.add("commands");
 		commands.add("help");
 		commands.add("answer");
+		commands.add("quiz");
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------------
@@ -114,9 +117,11 @@ public class PIEBot {
 	 * 
 	 * New command ideas:
 	 * !compliment - sends a random compliment to a random person (or a separate compliment to all people in chat at the time)
+	 * !joke - sends a random joke
 	 * 
 	 * Automation ideas:
 	 * automatically pull quiz/training questions and ask certain people in chat (tag them) and record their response times
+	 * send a message at midnight
 	 * 
 	 * */
 	
@@ -153,6 +158,11 @@ public class PIEBot {
 						+ "To see all available commands, type \"!piebot commands.\" If you are interested in assisting in the development of "
 						+ "PIEBot, contact Jacob at jamauro@iu.edu!";
 			chatBox.sendKeys(help);
+		
+		//testing for QuizBot
+		}else if(command.equals("quiz")) {
+			String quiz = "What is 2 + 2? Your options are: (A) 1, (B) 2, (C) 3, (D) 4.";
+			chatBox.sendKeys(quiz);
 		}
 		
 		sendResponse.moveToElement(sendButton).perform();
@@ -162,9 +172,17 @@ public class PIEBot {
 	//if there is a command and an argument given
 	public void sendResponse(String command, String argument) {
 		
+		WebElement chatBox = driver.findElement(By.xpath("//*[@id=\"chatMessageText\"]"));
+		WebElement sendButton = driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/div[1]/div[2]/div[2]/form/button"));
+		Actions sendResponse = new Actions(driver);
+		
 		if(command.equals("answer")) {
 			//continue here for implementing automatic testing!!!
+			
 		}
+		
+		sendResponse.moveToElement(sendButton).perform();
+		sendResponse.moveToElement(sendButton).click().perform();
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------------
@@ -185,6 +203,12 @@ public class PIEBot {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+        	
+        	//determine if a random quiz should be given
+        	if(quizBot.getCurrentMinute() == quizBot.getRandomMinute()) {
+        		quizBot.randomizeMinute();
+        		sendResponse("quiz");
+        	}
         	
         	//get the most recent chat message
         	newestMessage = driver.findElement(By.xpath("//*[@id=\"mainContent\"]/div/div[2]/div/div/div[1]/div[2]/div[2]/chat-messages-list/div/li[1]/div[1]"));
