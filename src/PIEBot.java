@@ -16,6 +16,7 @@ public class PIEBot {
 	private ArrayList<String> commands;
 	private ChatIcons chatIcons;
 	private QuizBot quizBot;
+	private Question currentQuestion;
 	
 	//-----------------------------------------------------------------------------------------------------------------
 	//create a PIEBot, set up the driver, and navigate to the PIE login webpage
@@ -161,7 +162,13 @@ public class PIEBot {
 		
 		//testing for QuizBot
 		}else if(command.equals("quiz")) {
-			String quiz = "What is 2 + 2? Your options are: (A) 1, (B) 2, (C) 3, (D) 4.";
+			System.out.println("enters quiz!");
+			currentQuestion = quizBot.getRandomQuestion();
+			String questionString = currentQuestion.getQuestion();
+			String answers = currentQuestion.printAnswers();
+			
+			String quiz = questionString + " " + answers;
+			System.out.println("here is the quiz: " + quiz);
 			chatBox.sendKeys(quiz);
 		}
 		
@@ -177,7 +184,18 @@ public class PIEBot {
 		Actions sendResponse = new Actions(driver);
 		
 		if(command.equals("answer")) {
-			//continue here for implementing automatic testing!!!
+			
+			//if the given argument is a valid answer
+			if(argument.toLowerCase().equals("a") || argument.toLowerCase().equals("b") || argument.toLowerCase().equals("c") || argument.toLowerCase().equals("d")) {
+				
+				//if the answer is correct
+				if(argument.equals(currentQuestion.getAnswerLetter())) {
+					chatBox.sendKeys("Correct answer!");
+				//if the answer is wrong
+				}else {
+					chatBox.sendKeys("Incorrect answer.");
+				}
+			}
 			
 		}
 		
@@ -205,8 +223,12 @@ public class PIEBot {
 			}
         	
         	//determine if a random quiz should be given
+        	System.out.println("curr: " + quizBot.getCurrentMinute());
+        	System.out.println("rand: " + quizBot.getRandomMinute());
         	if(quizBot.getCurrentMinute() == quizBot.getRandomMinute()) {
+        		System.out.println("quiz time!");
         		quizBot.randomizeMinute();
+        		System.out.println("randomized minute: " + quizBot.getRandomMinute());
         		sendResponse("quiz");
         	}
         	
@@ -230,7 +252,7 @@ public class PIEBot {
         			sendResponse(messageWords[1].toLowerCase());
         		
         		//if there is a command given with an argument
-        		}else if(messageWords.length == 3 && commands.contains(messageWords[2])) {
+        		}else if(messageWords.length == 3 && commands.contains(messageWords[1])) {
         			sendResponse(messageWords[1].toLowerCase(), messageWords[2].toLowerCase());
         		}
         	}
